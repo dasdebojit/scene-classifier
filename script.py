@@ -1,3 +1,5 @@
+from flask import Flask, request, jsonify
+
 import sys
 import torch
 from torch.autograd import Variable as V
@@ -46,7 +48,38 @@ def getPrediction(img_url):
     
     for i in range(0, 5):
         print(classes[idx[i]], ' -> ', probs[i].item())
+    
+    output = []
+    for i in range(0, 5):
+        mp = {}
+        mp[classes[idx[i]]] = probs[i].item()
+        output.append(mp)
+
+    path = os.path.join('./',img_name)
+    if os.path.exists(path):
+        os.remove(path)
+
+    return output
 
 
-getPrediction(sys.argv[1])
+# getPrediction(sys.argv[1])
 # print('output: ', output)
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello_world():
+    return 'Hello, World!'
+
+@app.route('/predict')
+def predict():
+    # print("we are here *******************************")
+    url = request.args.get('url')
+    print("HERE",url)
+
+    output = getPrediction(url)
+    return jsonify(output)
+
+# app.run(host='localhost', port=5000)
+if __name__=="__main__":
+    app.run(debug=True)
